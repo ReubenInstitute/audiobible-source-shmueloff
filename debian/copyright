@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: audiobible-shmueloff-source
+Source: https://github.com/ReubenInstitute/audiobible-shmueloff-source
+
+Files: *
+Copyright: Abraham Shmueloff
+License: none
+ No license claimed.

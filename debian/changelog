@@ -1,0 +1,9 @@
+audiobible-shmueloff-source (1.0) unstable; urgency=medium
+
+  * Revert to dpkg-deb-based packaging (debian/bootstrap.py +
+    debian/build-meta-package.py), matching the rest of the AudioBible
+    packaging pipeline. No debhelper, no dpkg-buildpackage.
+    Version fixed at 1.0: this corpus is the fixed original recording,
+    never rebuilt or rebumped.
+
+ -- Reuben Institute <reubeninstitute@gmail.com>  Sat, 27 Sep 2026 00:00:00 +0300
