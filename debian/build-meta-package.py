@@ -11,8 +11,8 @@ import jinja2
 REPO = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 DEBIAN = os.path.join(REPO, "debian")
 TEMPLATES = os.path.join(DEBIAN, "templates")
-SOURCE = os.path.normpath(os.path.join(REPO, "..", "audiobible-data", "source"))
 BUILD_ROOT = os.path.join(REPO, "build")
+SDIST = os.path.join(BUILD_ROOT, "sdist")
 OUTDIR = os.path.join(BUILD_ROOT, "dist")
 STAGING = os.path.join(BUILD_ROOT, "staging")
 VERSION = "1.0"
@@ -26,16 +26,25 @@ JINJA_ENV = jinja2.Environment(
 
 def discover_chapter_packages():
     pkgs = []
-    for book_dir in sorted(glob.glob(os.path.join(SOURCE, "[0-9][0-9]"))):
-        book = os.path.basename(book_dir)
-        for mp3 in sorted(glob.glob(os.path.join(book_dir, "*.mp3"))):
-            chapter = os.path.splitext(os.path.basename(mp3))[0]
-            pkgs.append(f"audiobible-shmueloff-source-{book}-{chapter}")
-    return pkgs
+    for deb in glob.glob(os.path.join(SDIST, "audiobible-shmueloff-source-*-*_*.deb")):
+        name = os.path.basename(deb)
+        pkg = name.split("_", 1)[0]
+        parts = pkg.split("-")
+        if len(parts) != 5:
+            continue
+        pkgs.append(pkg)
+    return sorted(pkgs)
 
 
-def discover_book_mp3s():
-    return sorted(glob.glob(os.path.join(SOURCE, "[0-9][0-9].mp3")))
+def extract_meta_package(pkg_root):
+    pattern = os.path.join(SDIST, "audiobible-shmueloff-source_*.deb")
+    matches = glob.glob(pattern)
+    if not matches:
+        return False
+    deb_path = matches[0]
+    os.makedirs(os.path.dirname(pkg_root), exist_ok=True)
+    subprocess.run(["dpkg-deb", "-R", deb_path, pkg_root], check=True)
+    return True
 
 
 def write_control(pkg_root, pkg, depends, description):
@@ -106,21 +115,14 @@ def build_deb(pkg_root, pkg):
 def main():
     pkg = "audiobible-shmueloff-source"
     chapter_pkgs = discover_chapter_packages()
-    book_mp3s = discover_book_mp3s()
     if not chapter_pkgs:
-        sys.exit("No chapter packages discovered -- run debian/bootstrap.py first.")
+        sys.exit("No chapter packages found in sdist/ -- run debian/bootstrap.py first.")
 
     pkg_root = os.path.join(STAGING, pkg)
     if os.path.exists(pkg_root):
         shutil.rmtree(pkg_root)
-    payload_dir = os.path.join(pkg_root, "usr", "share", "audiobible", "source")
-    os.makedirs(payload_dir, exist_ok=True)
-    for d in ("usr", "usr/share", "usr/share/audiobible", "usr/share/audiobible/source"):
-        os.chmod(os.path.join(pkg_root, d), 0o755)
-    for mp3 in book_mp3s:
-        dst = os.path.join(payload_dir, os.path.basename(mp3))
-        shutil.copy(mp3, dst)
-        os.chmod(dst, 0o644)
+    if not extract_meta_package(pkg_root):
+        sys.exit("No audiobible-shmueloff-source_*.deb found in sdist/.")
 
     description = (
         "Original 1970s recordings (Abraham Shmueloff), fixed source audio\n"
