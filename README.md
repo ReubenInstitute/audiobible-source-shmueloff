@@ -1,4 +1,4 @@
-# audiobible-shmueloff-source
+# audiobible-source-shmueloff
 
 Original ~1970 recordings of Abraham Shmueloff reading the entire Hebrew
 Bible — the fixed source audio everything else in AudioBible is derived
@@ -6,4 +6,4 @@ from.
 
 ## License
 
-- `audiobible-shmueloff-source` — no license claimed.
+- `audiobible-source-shmueloff` — no license claimed.
